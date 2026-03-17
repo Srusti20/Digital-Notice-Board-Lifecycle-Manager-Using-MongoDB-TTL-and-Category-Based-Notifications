@@ -135,11 +135,11 @@ http://localhost:5500
 
 ---
 
-## 👩‍💻 Project Owners
+## Project Owners
 
 This project is developed and maintained by:
 
-- 👩‍🎓 **Srusti M**  
-- 👩‍🎓 **Yashaswini KM**
+- **Srusti M**  
+- **Yashaswini KM**
 
 ---
