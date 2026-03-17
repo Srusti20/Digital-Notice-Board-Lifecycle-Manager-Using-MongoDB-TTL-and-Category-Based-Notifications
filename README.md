@@ -56,3 +56,47 @@ A web-based Notice Management System that allows administrators to post notices 
 
 ---
 
+## How to Run the Project
+
+Follow the steps below to run the project on your local machine.
+
+# Step 1: Run Backend (FastAPI)
+
+Open terminal and navigate to the backend folder:
+
+cd backend
+
+# Install required dependencies (if not installed):
+
+pip install -r requirements.txt
+
+# Start the backend server:
+
+python -m uvicorn main:app --reload
+
+# Backend will be available at:
+http://127.0.0.1:8000
+
+## Step 2: Run Frontend
+
+# Open a new terminal and navigate to the frontend folder:
+
+cd frontend
+
+# Start the frontend server:
+
+python -m http.server 5500
+
+# Open your browser and go to:
+
+http://localhost:5500
+
+------
+
+## Important Notes
+
+-Make sure the backend server is running before opening the frontend.
+
+-Ensure MongoDB is running and connected properly.
+
+-Check API URLs in frontend (should point to http://127.0.0.1:8000).
