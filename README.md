@@ -1,6 +1,8 @@
 # Smart Notice Board System
 
 A web-based Notice Management System that allows administrators to post notices and students to view them in real-time. The system supports category-based filtering, expiry management, and dynamic updates.
+<img width="654" height="462" alt="image" src="https://github.com/user-attachments/assets/5652b73f-8596-4783-8650-3a859334ca50" />
+
 
 ---
 
