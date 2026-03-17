@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notice Board — Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Improved notice card - compact with title only */
+    .notice-card {
+      padding: 18px 16px 14px;
+      min-height: auto;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    
+    .notice-card:hover {
+      transform: rotate(0deg) translateY(-8px) scale(1.05) !important;
+      box-shadow: 8px 14px 30px rgba(0,0,0,0.38);
+      z-index: 10;
+    }
+    
+    .notice-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .notice-preview {
+      font-size: 0.78rem;
+      color: var(--ink-light);
+      line-height: 1.5;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .notice-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(0,0,0,0.14);
+    }
+    
+    .read-more {
+      font-size: 0.72rem;
+      color: var(--brand);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    /* Modal content - paper style */
+    .modal-content {
+      background: var(--paper-cream);
+      max-width: 700px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 3px;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin: 20px;
+    }
+    
+    @keyframes modalSlide {
+      from { opacity: 0; transform: translateY(-50px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    /* Pin on modal */
+    .modal-content::before {
+      content: '';
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 24px;
+      background: radial-gradient(circle at 35% 35%, #ff7070, #c62828 65%, #8b0000);
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5), inset 0 -1px 3px rgba(0,0,0,0.3);
+      z-index: 10;
+    }
+    
+    .modal-header {
+      padding: 30px 35px 20px;
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.05);
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      color: var(--ink-mid);
+    }
+    
+    .modal-close:hover {
+      background: var(--danger);
+      color: white;
+      transform: rotate(90deg);
+    }
+    
+    .modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.3;
+      padding-right: 50px;
+    }
+    
+    .modal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--ink-mid);
+      background: rgba(61,107,94,0.08);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    
+    .meta-item .icon {
+      font-size: 0.9rem;
+    }
+    
+    .modal-body {
+      padding: 30px 35px;
+    }
+    
+    .notice-content {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--ink-mid);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 2px dashed rgba(0,0,0,0.15);
+    }
+    
+    .info-box {
+      background: rgba(255,255,255,0.5);
+      padding: 14px 16px;
+      border-radius: 6px;
+      border-left: 4px solid var(--brand);
+    }
+    
+    .info-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ink-light);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 0.95rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+    
+    .expiry-warning {
+      background: #fff3cd;
+      border-left-color: #f9a825;
+      color: #856404;
+    }
+    
+    .expiry-warning .info-label {
+      color: #856404;
+    }
+    
+    /* Scrollbar for modal */
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .modal-content::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    .modal-content::-webkit-scrollbar-thumb {
+      background: var(--brand);
+      border-radius: 4px;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+      .modal-content {
+        margin: 10px;
+        max-height: 95vh;
+      }
+      
+      .modal-header, .modal-body {
+        padding: 20px 20px;
+      }
+      
+      .modal-title {
+        font-size: 1.4rem;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <span class="room-sign">📋 Notice Board</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <!-- Board Header -->
+      <div class="board-header">
+        <div>
+          <div class="board-title">📌 Campus Notices</div>
+          <div class="board-subtitle">Updated every 5 seconds • Click to view details</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="live-badge">Live</span>
+          <button onclick="window.location.href='index.html'" class="btn-secondary"
+            style="width:auto;padding:7px 14px;margin:0;font-size:11px;background:transparent;color:rgba(255,255,255,0.85);border:1.5px solid rgba(255,255,255,0.5);box-shadow:none;">
+            ← Exit
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter chips -->
+      <div class="filter-row" id="filterRow">
+        <span class="filter-chip active" onclick="filterNotices('all', this)">All</span>
+        <span class="filter-chip" onclick="filterNotices('Exams', this)">📝 Exams</span>
+        <span class="filter-chip" onclick="filterNotices('Events', this)">🎉 Events</span>
+        <span class="filter-chip" onclick="filterNotices('Placements', this)">💼 Placements</span>
+        <span class="filter-chip" onclick="filterNotices('General', this)">📣 General</span>
+      </div>
+
+      <!-- Notices Grid -->
+      <div id="notices" class="notice-container">
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          Loading notices…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for notice details -->
+  <div class="modal-overlay" id="noticeModal" onclick="closeModalOnBackdrop(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h2 class="modal-title" id="modalTitle">Notice Title</h2>
+        <div class="modal-meta" id="modalMeta"></div>
+      </div>
+      <div class="modal-body">
+        <div class="notice-content" id="modalContent"></div>
+        <div class="info-grid" id="modalInfo"></div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
+<script>
+  /* ── Firebase ── */
+  const firebaseConfig = {
+    apiKey: "AIzaSyDGk5u59oxUqrG0ZfA2k1ONo9M_HI3wtrU",
+    authDomain: "smartnoticeboard-fb51b.firebaseapp.com",
+    projectId: "smartnoticeboard-fb51b",
+    storageBucket: "smartnoticeboard-fb51b.firebasestorage.app",
+    messagingSenderId: "1050872240810",
+    appId: "1:1050872240810:web:9aeacf3e3cc5cf0c464ed3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const messaging = firebase.messaging();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then(reg => { messaging.useServiceWorker(reg); })
+      .catch(err => console.error("SW failed:", err));
+  }
+
+  async function registerToken() {
+    try {
+      const token = await messaging.getToken({
+        vapidKey: "BCj7vugJCUFofBNn2jlzn9teSxW1zuqQxsBFarHTHLziIxnPJj2RB1serg1rthj4oyhOtTAKsMiXOpCrtmSVjX4"
+      });
+      await fetch("http://127.0.0.1:8000/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: "student_101", token, categories: ["Placements","Exams","Events"] })
+      });
+    } catch (err) { console.warn("FCM token error:", err); }
+  }
+  registerToken();
+
+  messaging.onMessage(payload => {
+    showToast(`📢 ${payload.notification.title}`, payload.notification.body);
+    loadNotices(); // Refresh notices when new one arrives
+  });
+
+  /* ── Notices ── */
+  let allNotices = [];
+  let activeFilter = 'all';
+
+  function getCategoryClass(cat) {
+    const map = { exams: 'tag-exams', events: 'tag-events', placements: 'tag-placements', general: 'tag-general' };
+    return map[(cat || '').toLowerCase()] || 'tag-default';
+  }
+
+  function getCategoryIcon(cat) {
+    const icons = { exams: '📝', events: '🎉', placements: '💼', general: '📣' };
+    return icons[(cat || '').toLowerCase()] || '📌';
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return isNaN(d) ? dateStr : d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' });
+  }
+
+  function formatDateTime(dateStr) {
+    if (!dateStr) return 'Not specified';
+    
+    // Create date object and convert to IST
+    const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
+    
+    // Get IST time (Indian Standard Time)
+    const istDate = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+    
+    // Format: "15 Mar 2026, 4:32 PM"
+    const day = istDate.getDate();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[istDate.getMonth()];
+    const year = istDate.getFullYear();
+    
+    let hours = istDate.getHours();
+    const minutes = istDate.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12; // Convert to 12-hour format
+    
+    return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+  }
+
+  function truncateText(text, maxLength) {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  }
+
+  function renderNotices(notices) {
+    const div = document.getElementById("notices");
+    if (!notices || notices.length === 0) {
+      div.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span>No notices here yet</div>`;
+      return;
+    }
+    div.innerHTML = notices.map((n, i) => `
+      <div class="notice-card" style="animation-delay:${i * 0.06}s" onclick='openModal(${JSON.stringify(n).replace(/'/g, "&apos;")})'>
+        <h3>${n.title || 'Untitled'}</h3>
+        <p class="notice-preview">${truncateText(n.content, 100)}</p>
+        <div class="notice-footer">
+          <span class="notice-tag ${getCategoryClass(n.category)}">${n.category || 'General'}</span>
+          <span class="read-more">Read More →</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterNotices(category, el) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    activeFilter = category;
+    const filtered = category === 'all' ? allNotices : allNotices.filter(n => (n.category || '').toLowerCase() === category.toLowerCase());
+    renderNotices(filtered);
+  }
+
+  async function loadNotices() {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/notices");
+      const data = await res.json();
+      allNotices = Array.isArray(data) ? data : [];
+      const filtered = activeFilter === 'all' ? allNotices : allNotices.filter(n => (n.category || '').toLowerCase() === activeFilter.toLowerCase());
+      renderNotices(filtered);
+    } catch (err) {
+      document.getElementById("notices").innerHTML = `
+        <div class="empty-state">
+          <span class="empty-icon">⚠️</span>
+          Could not reach the server.<br>Make sure the backend is running.
+        </div>`;
+    }
+  }
+
+  loadNotices();
+  setInterval(loadNotices, 5000);
+
+  /* ── Modal Functions ── */
+  function openModal(notice) {
+    const modal = document.getElementById('noticeModal');
+    const title = document.getElementById('modalTitle');
+    const meta = document.getElementById('modalMeta');
+    const content = document.getElementById('modalContent');
+    const info = document.getElementById('modalInfo');
+
+    // Set title
+    title.textContent = notice.title || 'Untitled Notice';
+
+    // Set meta tags
+    meta.innerHTML = `
+      <span class="meta-item">
+        <span class="icon">${getCategoryIcon(notice.category)}</span>
+        ${notice.category || 'General'}
+      </span>
+      <span class="meta-item">
+        <span class="icon">📅</span>
+        ${formatDate(notice.created_at || new Date())}
+      </span>
+    `;
+
+    // Set content
+    content.textContent = notice.content || 'No content available.';
+
+    // Set info boxes
+    let infoHTML = '';
+    
+    if (notice.department) {
+      infoHTML += `
+        <div class="info-box">
+          <div class="info-label">🏛 Department</div>
+          <div class="info-value">${notice.department}</div>
+        </div>
+      `;
+    }
+    
+    if (notice.year) {
+      infoHTML += `
+        <div class="info-box">
+          <div class="info-label">🎓 Target Year</div>
+          <div class="info-value">Year ${notice.year}</div>
+        </div>
+      `;
+    }
+    
+    if (notice.expiry_date) {
+      const isExpiring = new Date(notice.expiry_date) < new Date(Date.now() + 24*60*60*1000);
+      infoHTML += `
+        <div class="info-box ${isExpiring ? 'expiry-warning' : ''}">
+          <div class="info-label">⏰ Expires On</div>
+          <div class="info-value">${formatDateTime(notice.expiry_date)}</div>
+        </div>
+      `;
+    }
+    
+    if (notice.created_at) {
+      infoHTML += `
+        <div class="info-box">
+          <div class="info-label">📌 Posted On</div>
+          <div class="info-value">${formatDateTime(notice.created_at)}</div>
+        </div>
+      `;
+    }
+
+    info.innerHTML = infoHTML || '<p style="color:var(--ink-light);font-style:italic;text-align:center;">No additional information available.</p>';
+
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('noticeModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+
+  function closeModalOnBackdrop(event) {
+    if (event.target.id === 'noticeModal') {
+      closeModal();
+    }
+  }
+
+  // Close modal on ESC key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  /* ── Toast notification ── */
+  function showToast(title, body) {
+    const t = document.createElement('div');
+    t.style.cssText = `
+      position:fixed;top:20px;right:20px;z-index:999;
+      background:#fff;padding:16px 20px;border-radius:4px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.25);border-left:4px solid var(--brand);
+      font-family:'Lato',sans-serif;max-width:280px;animation:slideIn 0.3s ease;
+    `;
+    t.innerHTML = `<strong style="display:block;margin-bottom:4px;">${title}</strong><span style="font-size:13px;color:#555;">${body}</span>`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
+  }
+</script>
+
+</body>
+</html>

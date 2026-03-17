@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal — Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="page-header">
+    <span class="room-sign">🎓 Student Portal</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <div class="card auth-card" style="margin: 0 auto;">
+
+        <span class="auth-icon">📌</span>
+        <h1>Student Portal</h1>
+        <p class="desc">
+          Access your personalised notice board.<br>
+          Login to view notices or create a new account.
+        </p>
+
+        <div class="landing-divider"></div>
+
+        <button onclick="window.location.href='student_register.html'">
+          ✍️ &nbsp;Create Account
+        </button>
+
+        <button onclick="window.location.href='student_login.html'" class="btn-secondary"
+          style="background:transparent;color:var(--brand);border:2px solid var(--brand);box-shadow:none;">
+          🔓 &nbsp;Login
+        </button>
+
+        <p class="helper-text" style="margin-top:20px;">
+          <a href="index.html">← Back to Home</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

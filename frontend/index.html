@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Room ambiance: shelf / plant suggestion via CSS, nothing extra needed -->
+  <div class="page-header">
+    <span class="room-sign">📋 Smart Notice Board</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <div class="card landing-card" style="margin: 0 auto;">
+
+        <span class="landing-icon">🏫</span>
+        <h1>Smart Notice Board</h1>
+        <p class="landing-tagline">Campus Announcements &amp; Updates</p>
+
+        <div class="landing-divider"></div>
+
+        <span class="role-label">Who are you?</span>
+
+        <div class="btn-group" style="margin-top:0;">
+          <button onclick="window.location.href='student_auth.html'" class="btn-secondary"
+            style="background:transparent;color:var(--brand);border:2px solid var(--brand);box-shadow:none;">
+            🎓 Student
+          </button>
+          <button onclick="window.location.href='admin_login.html'" class="btn-amber">
+            🔑 Admin
+          </button>
+        </div>
+
+        <p class="helper-text" style="margin-top:18px;">
+          Smart Digital Notice Board System &mdash; powered by MongoDB
+        </p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

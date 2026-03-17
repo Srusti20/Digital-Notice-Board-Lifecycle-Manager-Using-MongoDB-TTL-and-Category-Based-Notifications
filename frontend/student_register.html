@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration — Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="page-header">
+    <span class="room-sign">✍️ Student Registration</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <div class="card large-card" style="margin: 0 auto;">
+
+        <h1>Create Account</h1>
+        <p class="card-subtitle">Fill in your details to register on the Smart Notice Board</p>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label for="user_id">Student ID *</label>
+            <input type="text" id="user_id" placeholder="e.g. STU2024001">
+          </div>
+          <div class="input-group">
+            <label for="college_id">College ID *</label>
+            <input type="text" id="college_id" placeholder="e.g. COL12345">
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" placeholder="Your full name">
+        </div>
+
+        <div class="input-group">
+          <label for="email">Email Address *</label>
+          <input type="email" id="email" placeholder="you@college.edu">
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" placeholder="Create a strong password" autocomplete="new-password">
+        </div>
+
+        <div class="form-row">
+          <div class="input-group">
+            <label for="department">Department *</label>
+            <input type="text" id="department" placeholder="e.g. Computer Science">
+          </div>
+          <div class="input-group">
+            <label for="year">Year *</label>
+            <select id="year">
+              <option value="">Select Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="input-group" style="margin-top:4px;">
+          <label>Subscribe to Categories *</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" value="Exams"> 📝 Exams
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" value="Events"> 🎉 Events
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" value="Placements"> 💼 Placements
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" value="General"> 📣 General
+            </label>
+          </div>
+        </div>
+
+        <button onclick="register()" id="regBtn" class="btn-amber" style="margin-top:16px;">
+          ✍️ &nbsp;Register
+        </button>
+
+        <p class="helper-text">
+          Already registered? <a href="student_login.html">Login here</a>
+        </p>
+        <p class="helper-text" style="margin-top:6px;">
+          <a href="student_auth.html">← Back</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+async function register() {
+  const alertEl = document.getElementById("alert");
+  const btn     = document.getElementById("regBtn");
+  alertEl.className = "alert";
+  alertEl.textContent = "";
+
+  // Gather checkbox values
+  const checkedBoxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
+  const categories   = Array.from(checkedBoxes).map(cb => cb.value);
+
+  const payload = {
+    user_id:    document.getElementById("user_id").value.trim(),
+    name:       document.getElementById("name").value.trim(),
+    email:      document.getElementById("email").value.trim(),
+    password:   document.getElementById("password").value,
+    department: document.getElementById("department").value.trim(),
+    year:       parseInt(document.getElementById("year").value),
+    college_id: document.getElementById("college_id").value.trim(),
+    categories
+  };
+
+  // Basic validation
+  const missing = Object.entries(payload).some(([k, v]) => !v || (Array.isArray(v) && !v.length));
+  if (missing || !payload.year) {
+    alertEl.textContent = "❌ Please fill in all required fields and select at least one category.";
+    alertEl.classList.add("error");
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Registering…';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch("http://127.0.0.1:8000/student/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      alertEl.textContent = "✅ Registration successful! Redirecting to login…";
+      alertEl.classList.add("success");
+      setTimeout(() => window.location.href = "student_login.html", 1200);
+    } else {
+      alertEl.textContent = "❌ " + (data.detail || "Registration failed. Please try again.");
+      alertEl.classList.add("error");
+    }
+  } catch (err) {
+    alertEl.textContent = "⚠️ Cannot reach server. Is the backend running?";
+    alertEl.classList.add("error");
+  } finally {
+    btn.innerHTML = '✍️ &nbsp;Register';
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>

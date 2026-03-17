@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="page-header">
+    <span class="room-sign">🔑 Admin Login</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <div class="card" style="margin:0 auto;">
+
+        <h1>Admin Access</h1>
+        <p class="card-subtitle">Authorised personnel only — enter your credentials</p>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Admin username" autocomplete="username">
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Admin password" autocomplete="current-password">
+        </div>
+
+        <button onclick="adminLogin()" id="loginBtn" class="btn-amber">
+          🔑 &nbsp;Login as Admin
+        </button>
+
+        <p class="helper-text" style="margin-top:18px;">
+          <a href="index.html">← Back to Home</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+async function adminLogin() {
+  const alertEl  = document.getElementById("alert");
+  const btn      = document.getElementById("loginBtn");
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
+
+  alertEl.className = "alert";
+  alertEl.textContent = "";
+
+  if (!username || !password) {
+    alertEl.textContent = "❌ Please enter both username and password.";
+    alertEl.classList.add("error");
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Verifying…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      alertEl.textContent = "✅ Login successful! Loading dashboard…";
+      alertEl.classList.add("success");
+      setTimeout(() => window.location.href = "admin.html", 900);
+    } else {
+      alertEl.textContent = "❌ " + (data.detail || "Invalid credentials.");
+      alertEl.classList.add("error");
+    }
+  } catch (err) {
+    alertEl.textContent = "⚠️ Cannot reach server. Is the backend running?";
+    alertEl.classList.add("error");
+  } finally {
+    btn.innerHTML = '🔑 &nbsp;Login as Admin';
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Enter") adminLogin(); });
+</script>
+
+</body>
+</html>

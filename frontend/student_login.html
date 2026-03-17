@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login — Smart Notice Board</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="page-header">
+    <span class="room-sign">🔓 Student Login</span>
+  </div>
+
+  <div class="board-wrapper">
+    <div class="screw-l"></div>
+    <div class="screw-r"></div>
+    <div class="cork-board">
+      <div class="card" style="margin: 0 auto;">
+
+        <h1>Welcome back</h1>
+        <p class="card-subtitle">Sign in to view your personalised notices</p>
+
+        <div id="alert" class="alert"></div>
+
+        <div class="input-group">
+          <label for="user_id">Student ID</label>
+          <input type="text" id="user_id" placeholder="e.g. STU2024001" autocomplete="username">
+        </div>
+
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+        </div>
+
+        <button onclick="login()" id="loginBtn">🔓 &nbsp;Login</button>
+
+        <div class="divider">or</div>
+
+        <p class="helper-text">
+          Don't have an account? <a href="student_register.html">Register here</a>
+        </p>
+        <p class="helper-text" style="margin-top:8px;">
+          <a href="student_auth.html">← Back</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+async function login() {
+  const user_id  = document.getElementById("user_id").value.trim();
+  const password = document.getElementById("password").value;
+  const alertEl  = document.getElementById("alert");
+  const btn      = document.getElementById("loginBtn");
+
+  alertEl.className = "alert";
+  alertEl.textContent = "";
+
+  if (!user_id || !password) {
+    alertEl.textContent = "Please fill in all fields.";
+    alertEl.classList.add("error");
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Signing in…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/student/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, password })
+    });
+    const data = await res.json();
+
+    if (res.status === 200) {
+      alertEl.textContent = "✅ Login successful! Redirecting…";
+      alertEl.classList.add("success");
+      setTimeout(() => window.location.href = "student.html", 900);
+    } else {
+      alertEl.textContent = "❌ " + (data.detail || "Login failed. Check your credentials.");
+      alertEl.classList.add("error");
+    }
+  } catch (err) {
+    alertEl.textContent = "⚠️ Cannot reach server. Is the backend running?";
+    alertEl.classList.add("error");
+  } finally {
+    btn.innerHTML = '🔓 &nbsp;Login';
+    btn.disabled = false;
+  }
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+</script>
+
+</body>
+</html>

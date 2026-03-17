@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — Smart Notice Board</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* your entire CSS remains unchanged */
+
+#year {
+  color: #333;
+  width: 100%;
+  min-width: 110px;
+}
+#year option {
+  color: #333;
+}
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="page-header">
+<span class="room-sign">⚙️ Admin Dashboard</span>
+</div>
+
+<div class="board-wrapper">
+<div class="screw-l"></div>
+<div class="screw-r"></div>
+<div class="cork-board">
+
+<div class="card large-card" style="margin:0 auto;">
+
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid rgba(0,0,0,0.1);">
+
+<div>
+<h1 style="margin-bottom:6px;font-size:1.95rem;">Admin Dashboard</h1>
+<p class="card-subtitle" style="margin:0;font-size:0.92rem;">Manage and post campus notices</p>
+</div>
+
+<button onclick="window.location.href='index.html'" class="btn-secondary"
+style="width:auto;padding:10px 18px;margin:0;font-size:12px;background:transparent;border:2px solid var(--brand);color:var(--brand);box-shadow:none;">
+← Home
+</button>
+
+</div>
+
+<div class="admin-layout">
+
+<!-- Post Notice Form -->
+
+<div class="admin-panel">
+
+<h2>📝 Post a Notice</h2>
+
+<div id="formAlert" class="alert" style="display:none;"></div>
+
+<div class="input-group">
+<label for="title">Notice Title *</label>
+<input type="text" id="title" placeholder="e.g. Mid-Semester Exam Schedule">
+</div>
+
+<div class="input-group">
+<label for="content">Notice Content *</label>
+<textarea id="content" placeholder="Write the full notice content here…" rows="6"></textarea>
+</div>
+
+<div class="form-row">
+
+<div class="input-group">
+<label for="category">Category *</label>
+<select id="category">
+<option value="">Select category…</option>
+<option value="Exams">📝 Exams</option>
+<option value="Events">🎉 Events</option>
+<option value="Placements">💼 Placements</option>
+<option value="General">📣 General</option>
+</select>
+</div>
+
+<div class="input-group">
+<label for="department">Department</label>
+<input type="text" id="department" placeholder="All / CSE / ECE…">
+</div>
+
+</div>
+
+<div class="form-row">
+
+<div class="input-group">
+<label for="year">Target Year</label>
+<select id="year">
+<option value="">All Years</option>
+<option value="1">1st Year</option>
+<option value="2">2nd Year</option>
+<option value="3">3rd Year</option>
+<option value="4">4th Year</option>
+</select>
+</div>
+
+<div class="input-group">
+<label for="expiry_date">Expiry Date & Time</label>
+<input type="datetime-local" id="expiry_date">
+</div>
+
+</div>
+
+<button onclick="postNotice()" id="postBtn" class="btn-amber">
+📌 Pin Notice to Board
+</button>
+
+</div>
+
+
+<!-- Posted Notices List -->
+
+<div class="admin-panel">
+
+<h2 style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+<span>📋 Posted Notices</span>
+<span class="live-badge" style="font-size:0.62rem;">Live</span>
+</h2>
+
+<div id="adminNotices" class="admin-notice-list">
+
+<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-style:italic;font-size:0.9rem;">
+Loading notices…
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* Disable past time in calendar */
+
+document.getElementById("expiry_date").min = new Date().toISOString().slice(0,16);
+
+
+/* Post notice */
+
+async function postNotice() {
+
+const alertEl = document.getElementById("formAlert");
+const btn = document.getElementById("postBtn");
+
+alertEl.className = "alert";
+alertEl.textContent = "";
+alertEl.style.display = "none";
+
+
+const title = document.getElementById("title").value.trim();
+const content = document.getElementById("content").value.trim();
+const category = document.getElementById("category").value;
+const dept = document.getElementById("department").value.trim();
+const yearVal = document.getElementById("year").value;
+const expiry = document.getElementById("expiry_date").value;
+
+
+/* NEW VALIDATION — prevent past expiry time */
+
+if (expiry) {
+
+const selectedTime = new Date(expiry);
+const currentTime = new Date();
+
+if (selectedTime <= currentTime) {
+
+alertEl.textContent = "❌ Expiry date cannot be in the past. Please select a future date and time.";
+alertEl.classList.add("error");
+alertEl.style.display = "block";
+
+return;
+
+}
+
+}
+
+
+/* Required fields */
+
+if (!title || !content || !category) {
+
+alertEl.textContent = "❌ Title, Content and Category are required.";
+alertEl.classList.add("error");
+alertEl.style.display = "block";
+
+return;
+
+}
+
+
+btn.innerHTML = '<span class="spinner"></span> Posting…';
+btn.disabled = true;
+
+try {
+
+const body = { title, content, category };
+
+if (dept) body.department = dept;
+if (yearVal) body.year = parseInt(yearVal);
+if (expiry) body.expiry_date = expiry;
+
+
+const res = await fetch("http://127.0.0.1:8000/add_notice", {
+
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(body)
+
+});
+
+
+const data = await res.json();
+
+
+if (res.status === 200) {
+
+alertEl.textContent = "✅ Notice pinned to the board successfully!";
+alertEl.classList.add("success");
+alertEl.style.display = "block";
+
+document.getElementById("title").value = "";
+document.getElementById("content").value = "";
+document.getElementById("category").value = "";
+document.getElementById("department").value = "";
+document.getElementById("year").value = "";
+document.getElementById("expiry_date").value = "";
+
+loadAdminNotices();
+
+setTimeout(() => {
+alertEl.style.display = "none";
+}, 3000);
+
+}
+
+else {
+
+alertEl.textContent = "❌ " + (data.detail || "Failed to post notice.");
+alertEl.classList.add("error");
+alertEl.style.display = "block";
+
+}
+
+}
+
+catch (err) {
+
+alertEl.textContent = "⚠️ Cannot reach server. Is the backend running?";
+alertEl.classList.add("error");
+alertEl.style.display = "block";
+
+}
+
+finally {
+
+btn.innerHTML = '📌 Pin Notice to Board';
+btn.disabled = false;
+
+}
+
+}
+
+
+
+/* Load notices */
+
+async function loadAdminNotices() {
+
+const container = document.getElementById("adminNotices");
+
+try {
+
+const res = await fetch("http://127.0.0.1:8000/notices");
+const notices = await res.json();
+
+
+if (!notices || notices.length === 0) {
+
+container.innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-style:italic;font-size:0.9rem;">No notices posted yet.</div>`;
+
+return;
+
+}
+
+
+container.innerHTML = notices.map(n => `
+
+<div class="admin-notice-item">
+
+<div class="admin-notice-info">
+
+<h4>${n.title}</h4>
+
+<p>
+
+<span class="notice-tag">${n.category}</span>
+
+${n.expiry_date ? '<br><small>⏰ Expires: ' + new Date(n.expiry_date).toLocaleString() + '</small>' : ''}
+
+</p>
+
+</div>
+
+<button class="btn-danger" onclick="deleteNotice('${n._id}')">🗑 Delete</button>
+
+</div>
+
+`).join('');
+
+}
+
+catch (err) {
+
+container.innerHTML = `<div style="text-align:center;padding:30px;color:#c62828;font-size:0.88rem;">⚠️ Could not load notices.</div>`;
+
+}
+
+}
+
+
+/* Delete notice */
+
+async function deleteNotice(id) {
+
+if (!confirm("Are you sure you want to remove this notice?")) return;
+
+try {
+
+const res = await fetch(`http://127.0.0.1:8000/notice/${id}`, { method: "DELETE" });
+
+if (res.ok) loadAdminNotices();
+
+}
+
+catch (err) {
+
+alert("Server error.");
+
+}
+
+}
+
+
+/* Load notices */
+
+loadAdminNotices();
+setInterval(loadAdminNotices, 10000);
+
+</script>
+
+</body>
+</html>
