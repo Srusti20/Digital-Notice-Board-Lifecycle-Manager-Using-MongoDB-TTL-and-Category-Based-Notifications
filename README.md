@@ -132,3 +132,14 @@ http://localhost:5500
 -Ensure MongoDB is running and connected properly.
 
 -Check API URLs in frontend (should point to http://127.0.0.1:8000).
+
+---
+
+## 👩‍💻 Project Owners
+
+This project is developed and maintained by:
+
+- 👩‍🎓 **Srusti M**  
+- 👩‍🎓 **Yashaswini KM**
+
+---
